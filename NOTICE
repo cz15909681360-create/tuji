@@ -1,0 +1,5 @@
+图迹 0.3.3 — original native Android implementation.
+Implements LocalSend protocol v2.2 interoperability, referencing LocalSend v1.18.2 af0416be50770a97760f7070684bc667b759a15c.
+LocalSend Copyright (c) LocalSend contributors, Apache License 2.0.
+No Flutter or Rust runtime is used in this application.
+Tencent Maps Android SDK remains subject to Tencent licensing and privacy terms.

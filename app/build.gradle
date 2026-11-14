@@ -1,0 +1,34 @@
+apply plugin: 'com.android.application'
+def config = new Properties()
+if(rootProject.file('local.properties').exists()) rootProject.file('local.properties').withInputStream { config.load(it) }
+def secrets = new Properties()
+if(rootProject.file('signing.properties').exists()) rootProject.file('signing.properties').withInputStream { secrets.load(it) }
+android {
+ namespace 'io.tuji.app'
+ compileSdk 36
+ buildToolsVersion '36.0.0'
+ defaultConfig {
+  applicationId 'io.tuji.app'; minSdk 29; targetSdk 36
+  versionCode 7; versionName '0.3.3'
+  testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+  manifestPlaceholders = [TENCENT_MAP_KEY: providers.gradleProperty('TENCENT_MAP_KEY').getOrElse(config.getProperty('TENCENT_MAP_KEY',''))]
+ }
+ compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+ signingConfigs { release { if(secrets.getProperty('storeFile')) { storeFile rootProject.file(secrets['storeFile']);storePassword secrets['storePassword'];keyAlias secrets['keyAlias'];keyPassword secrets['keyPassword'] } } }
+ buildTypes { debug { applicationIdSuffix ".debug" }; release { signingConfig signingConfigs.release; minifyEnabled false } }
+ packaging { resources { excludes += ['META-INF/DEPENDENCIES','META-INF/LICENSE*','META-INF/NOTICE*'] } }
+ testOptions { unitTests.returnDefaultValues = true }
+}
+dependencies {
+ implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.6.21'
+ implementation 'com.tencent.map:tencent-map-vector-sdk:6.15.1.261013.3d797fb0.242708926'
+ implementation 'com.tencent.openmap:foundation:0.9.1.6875646-pro'
+ androidTestImplementation 'androidx.test:runner:1.7.0'
+ androidTestImplementation 'androidx.test.ext:junit:1.3.0'
+ testImplementation 'junit:junit:4.13.2'
+ testImplementation 'org.json:json:20240303'
+}
+
+tasks.withType(Test).configureEach { systemProperty "tuji.fixtures", rootProject.file(".fixtures").absolutePath; systemProperty "tuji.stress", providers.gradleProperty("stress").getOrElse("false") }
+
+android.sourceSets.androidTest.assets.srcDirs += [rootProject.file(".fixtures")]

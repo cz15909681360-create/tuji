@@ -1,0 +1,11 @@
+package io.tuji.app;
+import androidx.test.platform.app.InstrumentationRegistry;import android.app.*;import android.content.*;import android.os.*;import android.view.*;import org.junit.Test;import static org.junit.Assert.*;
+public class GalleryInteractionTest {
+ @Test public void pinchAndExplicitSelection()throws Exception{
+  Instrumentation i=InstrumentationRegistry.getInstrumentation();MainActivity a=(MainActivity)i.startActivitySync(new Intent(i.getTargetContext(),MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));Thread.sleep(1800);
+  i.runOnMainSync(()->{GalleryScreen g=a.galleryScreen;assertFalse(g.filtered.isEmpty());a.selected.clear();g.columns=3;g.rebuild();String day=g.filtered.get(0).day;g.selectDay(day);int count=a.selected.size();assertTrue(count>0);g.selectDay(day);assertEquals(0,a.selected.size());g.toggle(g.filtered.get(0));assertEquals(1,a.selected.size());g.toggle(g.filtered.get(0));assertFalse(g.selecting);
+   pinch(g,420,110);assertTrue("pinch inward increases columns width="+g.getWidth()+" factor="+g.factor+" cols="+g.columns+" ",g.columns>3);assertTrue(a.selected.isEmpty());pinch(g,100,500);assertTrue(g.columns>=3&&g.columns<=6);assertTrue(a.selected.isEmpty());g.columns=6;g.rebuild();});i.runOnMainSync(a::finish);
+ }
+ static void pinch(GalleryScreen g,float start,float end){long t=SystemClock.uptimeMillis();float cx=g.getWidth()/2f,cy=g.getHeight()/2f;MotionEvent.PointerProperties[] pp={new MotionEvent.PointerProperties(),new MotionEvent.PointerProperties()};for(int n=0;n<2;n++){pp[n].id=n;pp[n].toolType=MotionEvent.TOOL_TYPE_FINGER;}send(g,t,t,0,1,pp,cx,cy,start);send(g,t,t+20,5|(1<<8),2,pp,cx,cy,start);for(int n=1;n<=12;n++)send(g,t,t+20+n*20,2,2,pp,cx,cy,start+(end-start)*n/12);send(g,t,t+300,6|(1<<8),2,pp,cx,cy,end);send(g,t,t+320,1,1,pp,cx,cy,end);}
+ static void send(GalleryScreen g,long down,long now,int action,int count,MotionEvent.PointerProperties[] pp,float cx,float cy,float span){MotionEvent.PointerCoords[] pc={new MotionEvent.PointerCoords(),new MotionEvent.PointerCoords()};for(int n=0;n<2;n++){pc[n].x=cx+(n==0?-span:span)/2;pc[n].y=cy;pc[n].pressure=1;pc[n].size=1;}MotionEvent e=MotionEvent.obtain(down,now,action,count,pp,pc,0,0,1,1,0,0,android.view.InputDevice.SOURCE_TOUCHSCREEN,0);g.dispatchTouchEvent(e);e.recycle();}
+}
